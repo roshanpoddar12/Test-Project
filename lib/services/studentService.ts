@@ -6,7 +6,7 @@ import { PersonalInfoPersistable, StudentInfoModel } from 'interfaces/personal-i
 
 export default class UserService {
     
-    public async createUser(body: PersonalInfoPersistable) {
+    public async createStudent(body: PersonalInfoPersistable) {
         let persistable
         try{
          persistable = await new Persistable(student).insert(body)
@@ -16,17 +16,17 @@ export default class UserService {
         return persistable
     }
 
-    public async filterUser(query: any) {
+    public async filterStudent(query: any) {
         console.log(query)
         let persistable = await new Persistable(student).fetch(
            query
         )
         console.log(persistable)
         return(persistable)
-        // users.find(query, callback);
+        // Students.find(query, callback);
     }
 
-//     public async updateUser() {
+//     public async updateStudent() {
 //         // const query = { _id: user_params._id };
 //         let persistable = await new Persistable(users).update({
 //             filter:{

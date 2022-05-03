@@ -1,7 +1,7 @@
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as mongoose from 'mongoose';
-import { TestRoutes } from "../routes/user_routes";
+import { TestRoutes } from "../routes/studentRoutes";
 import { CommonRoutes } from "../routes/common_routes";
 
 class App {

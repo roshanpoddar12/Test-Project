@@ -1,21 +1,21 @@
 import { Application, Request, Response } from 'express';
 import { Crud } from './common/crud';
-import { UserController } from '../controllers/userController';
+import { StudentController } from '../controllers/studentController';
 import * as student from '../schema/student/schema';
 
 export class TestRoutes {
 
-    private user_controller: UserController = new UserController();
+    private user_controller: StudentController = new StudentController();
     public crud = new Crud()
 
     public route(app: Application) {
         
         app.post('/api/user', (req: Request, res: Response) => {
-            this.user_controller.create_user(req, res);
+            this.user_controller.createStudent(req, res);
         });
 
         app.get('/api/user', (req: Request, res: Response) => {
-            this.user_controller.get_user(req, res);
+            this.user_controller.getStudent(req, res);
         });
 
         // app.put('/api/user', (req: Request, res: Response) => {
