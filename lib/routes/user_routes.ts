@@ -25,7 +25,8 @@ export class TestRoutes {
         // app.delete('/api/user/:id', (req: Request, res: Response) => {
         //     this.user_controller.delete_user(req, res);
         // });
-        app.get('/api/user/:route', (req: Request, res: Response)=> {
+        app.post('/api/user/:route', (req: Request, res: Response)=> {
+            console.log(req)
             this.crud.crudRoutes(req, res, student)
         })
     }

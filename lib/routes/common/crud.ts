@@ -16,5 +16,9 @@ export class Crud {
             let persistable = await new Persistable(schema).fetch(req.body)
             res.send(persistable)
         }
+        if(route == 'upsert'){
+            let persistable = await new Persistable(schema).upsert(req.body)
+            res.send(persistable)
+        }
     } 
 }

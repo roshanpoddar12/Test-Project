@@ -37,7 +37,7 @@ export class DbSanitize {
     }
 
     prepareObjForInsert = (obj: any) => {
-        const newObj = this._idToId(obj)
+        const newObj = this.idTo_Id(obj)
         const currentDate = new Date()
         //If the meta is already present, use that and insert as it is. Don't modify.
         //Should be used to move data across clusters, sync offline data from phones with phone time stamps, etc.

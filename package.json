@@ -26,8 +26,10 @@
     "i": "^0.3.7",
     "lodash": "^4.17.21",
     "mongoose": "^5.9.7",
+    "mongoose-id-assigner": "^4.0.1",
     "nodemon": "^2.0.2",
     "npm": "^8.8.0",
+    "underscore": "^1.13.3",
     "winston": "^3.7.2",
     "xss-clean": "^0.1.1"
   }

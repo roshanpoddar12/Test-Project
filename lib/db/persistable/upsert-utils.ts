@@ -82,8 +82,8 @@ const segBySingleField = async <T, U extends T & PersistableObject = T & Persist
     const groupedObjs = groupBy(iObjMap, iObj => !!iObj.obj[uniqueField] && fetchedValues.indexOf(iObj.obj[uniqueField]) != -1)
     const onDb = groupedObjs.true || []
     const dbObjsWithId = onDb.map(({ i, obj }) => {
-        const id = valIdMap.get(obj[uniqueField])
-        return { i, obj: Object.assign({}, obj, { id }) }
+        const _id = valIdMap.get(obj[uniqueField])
+        return { i, obj: Object.assign({}, obj, { _id }) }
     })
     //We keep adding the objs that are on db
     return {
@@ -116,7 +116,6 @@ export const segByMultiFields = async <T, U extends T & PersistableObject>(iObjM
     for (var start = 0; start < filterSpecs.length; start += batchSize) {
         filterSpec2DArr.push(filterSpecs.slice(start, start + batchSize))
     }
-
     const fetchOp = async (filterSpecs: IndexMap<FilterSpec<U>>[]) => {
         const fetchRes = await db.fetch({
             filter: { $or: filterSpecs.map(spec => spec.obj) } as any,
@@ -188,15 +187,14 @@ export const segregateObjs = async <T, U extends T & PersistableObject>(
     db: Persistable<T, U>,
     uniqueFieldSets?: (ObjKeys<T>)[][],
     exceptNullUniqueFieldSet?: (ObjKeys<T>)[]): Promise<SegregatedObjs<T>> => {
-    console.log(uniqueFieldSets)
     let segregatedObjs = await segregateByIds(indexObjMap, db)
-    console.log(segregatedObjs)
     if (uniqueFieldSets) {
         for (let ufIndex = 0; (ufIndex < uniqueFieldSets.length && segregatedObjs.notOnDb.length > 0); ufIndex++) {
             const uniqueFieldSet = uniqueFieldSets[ufIndex]
             segregatedObjs = await segregateObjsForOneUniqueFieldSet(segregatedObjs, db, uniqueFieldSet)
         }
     }
+
     if (exceptNullUniqueFieldSet) {
         for (let ufIndex = 0; (ufIndex < exceptNullUniqueFieldSet.length && segregatedObjs.notOnDb.length > 0); ufIndex++) {
             const uniqueField = exceptNullUniqueFieldSet[ufIndex]

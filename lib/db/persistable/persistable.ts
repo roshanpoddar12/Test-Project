@@ -7,6 +7,7 @@ import { getVersion, IndexMap, retryWithVersion } from "../utils";
 import { segregateObjs } from "./upsert-utils";
 import * as BPromise from "bluebird";
 import { validateFieldsPresence } from "./validation";
+import * as _ from 'underscore'
 
 export const txt = (obj: any, shorten: boolean = false) => {
   const str = JSON.stringify(obj);
@@ -65,10 +66,10 @@ export class Persistable<
     this.sanitize.validateFetchSpec(newSpec);
     const message = `fetch spec=${newSpec} coll=${this.collectionName
       }`;
+
     const { limit, sort, skip, project, filter } = newSpec;
     let cursor: Cursor;
     let filterList = []
-
     // if (limit != null) cursor = cursor.limit(limit);
     filterList.push({ $match: filter })
     if (sort != null && Object.keys(sort).length > 0)
@@ -168,6 +169,7 @@ export class Persistable<
       );
     }
     const { objs, checkFieldsPresence } = insertSpec;
+    console.log('objs',objs)
     if (!objs || toNonEmptyArr(objs).length == 0) {
       throw new Error(
         `No objs to insert on '${this.collectionName}'`
@@ -186,6 +188,7 @@ export class Persistable<
     }
     //Doing it later because if id is a field to be validated, it should be done before changing it to _id
     const insertObjs = nonEmptyObjs.map(this.sanitize.prepareObjForInsert);
+    // console.log(insertObjs)
     const message = `insert count=${insertObjs.length} spec=${txt(
       insertObjs, true
     )} coll=${this.collectionName}`;
@@ -440,6 +443,7 @@ export class Persistable<
       );
     }
     let { _id } = obj;
+    console.log('object',obj)
     if (!_id)
       throw new Error(
         `Missing _id on the obj ${txt(obj)} for updateOneObj in ${this.collectionName
@@ -476,29 +480,46 @@ export class Persistable<
     };
   }
 
-
   async upsert(upsertSpec: UpsertSpec<T>): Promise<UpsertResult> {
     const timer = new TimeMeasure(true);
     if (!this.isObjectLiteral(upsertSpec)) {
       throw new Error(
-        `invalid spec ${txt(upsertSpec)} for upsert on '${this.collectionName
-        }'`,
+        `invalid spec ${txt(upsertSpec)} for upsert on '${
+          this.collectionName
+        }'`
       );
     }
-    let { objs, uniqueFieldSet, checkFieldsPresence } = upsertSpec;
-    const uniqueFieldSets = uniqueFieldSet
+  let { objs, uniqueFieldSet, checkFieldsPresence } = upsertSpec;
+  // console.log(upsertSpec)
+    let uniqueFieldSets = uniqueFieldSet
       ? [uniqueFieldSet]
       : this.indexSpec && this.indexSpec.unique;
     if (!objs || toNonEmptyArr(objs).length == 0) {
       throw new Error(
-        `no objs in upsertSpec ${txt(upsertSpec)} to upsert on '${this.collectionName
-        }'`,
+        `no objs in upsertSpec ${txt(upsertSpec)} to upsert on '${
+          this.collectionName
+        }'`
       );
     }
     const upsertObjs = toNonEmptyArr(objs);
     let insertedCount: number = 0;
     let updatedCount: number = 0;
     const indexedIds: IndexMap<string>[] = [];
+    let nullIndexes: any[] = []
+    
+    if(!uniqueFieldSets){
+      let indexes: any[] = []
+      let indexesObj = await this.collectionName.collection.getIndexes({full: true})
+      indexesObj.map(obj => {
+        if(obj.unique && !obj.partialFilterExpression )
+          indexes.push(Object.keys(obj.key)[0])
+        if(obj.unique && obj.partialFilterExpression)
+          nullIndexes.push(Object.keys(obj.key)[0])
+
+      })
+      uniqueFieldSets = [indexes]
+    }
+    console.log(nullIndexes)
     for (
       var mainIndex = 0;
       mainIndex < upsertObjs.length;
@@ -511,47 +532,47 @@ export class Persistable<
       const indexObjMap: IndexMap<ObjWithPossibleId<T>>[] = batchObjs.map(
         (obj, index) => ({ i: mainIndex + index, obj })
       );
-      
-       let res =  this.collectionName.updateMany(batchObjs,batchObjs,{upsert: true})
-      console.log(res)
-      //onDb objs contain id
-    //   const { onDb, notOnDb } = await checkObjs(
-    //     indexObjMap
-    //   );
-    //   if (notOnDb.length > 0) {
-    //     const { insertedIds } = await this.insert({
-    //       objs: notOnDb.map((o) => o.obj),
-    //       checkFieldsPresence,
-    //     });
-    //     insertedCount += insertedIds.length;
-    //     notOnDb.forEach((iObj, index) => {
-    //       indexedIds.push({ i: iObj.i, obj: insertedIds[index] });
-    //     });
-    //   }
 
-    //   if (onDb.length > 0) {
-    //     const updateOp = async ({ i, obj }) => {
-    //       await this.updateOneObj(obj);
-    //       return obj.id;
-    //     };
-    //     const updatedIds = await BPromise.map(onDb, updateOp, {
-    //       concurrency: singleOpConcurrency,
-    //     });
-        updatedCount += res.n;
-        console.log(res.n)
-    //     onDb.forEach((iObj, index) => {
-    //       indexedIds.push({ i: iObj.i, obj: updatedIds[index] });
-    //     });
-    //   }
+      //onDb objs contain id
+      const { onDb, notOnDb } = await segregateObjs(
+        indexObjMap,
+        this,
+        uniqueFieldSets,
+        nullIndexes
+      );
+      if (notOnDb.length > 0) {
+        const { insertedIds } = await this.insert({
+          objs: notOnDb.map((o) => o.obj),
+          checkFieldsPresence,
+        });
+        insertedCount += insertedIds.length;
+        notOnDb.forEach((iObj, index) => {
+          indexedIds.push({ i: iObj.i, obj: insertedIds[index] });
+        });
+      }
+
+      if (onDb.length > 0) {
+        const updateOp = async ({ i, obj }: IndexMap<T & IdObject>) => {
+          await this.updateOneObj(obj);
+          return obj._id;
+        };
+        const updatedIds = await BPromise.map(onDb, updateOp, {
+          concurrency: singleOpConcurrency,
+        });
+        updatedCount += updatedIds.length;
+        onDb.forEach((iObj, index) => {
+          indexedIds.push({ i: iObj.i, obj: updatedIds[index] });
+        });
+      }
     }
-    // const ids: string[] = [];
-    // indexedIds.forEach((m) => (ids[m.i] = m.obj));
+    const ids: string[] = [];
+    indexedIds.forEach((m) => (ids[m.i] = m.obj));
 
     console.log({
       message: `upsert insertedCount=${insertedCount} updatedCount=${updatedCount} a_t=${timer.end()}`,
     });
     return {
-      ids:[],
+      ids,
       insertedCount,
       updatedCount,
       dbTime: timer.end(),

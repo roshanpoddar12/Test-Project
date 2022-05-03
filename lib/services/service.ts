@@ -2,11 +2,11 @@
 import { Persistable } from '../db/persistable/persistable';
 import * as student from '../schema/student/schema';
 import * as mongoose from 'mongoose'
-import { StudentInfoModel } from 'interfaces/personal-info/personal-info-model';
+import { PersonalInfoPersistable, StudentInfoModel } from 'interfaces/personal-info/personal-info-model';
 
 export default class UserService {
     
-    public async createUser(body: StudentInfoModel) {
+    public async createUser(body: PersonalInfoPersistable) {
         let persistable
         try{
          persistable = await new Persistable(student).insert(body)
