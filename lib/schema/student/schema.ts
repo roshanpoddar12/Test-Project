@@ -1,12 +1,13 @@
 import * as mongoose from 'mongoose';
 import {NameTitlesEnum, NameTitlesEnumList, NameTitlesType} from './../../interfaces/personal-info/name'
-import { GenderEnum, StudentInfoModel, LeaderboardData, PersonalInfoPersistable, GenderEnumList } from './../../interfaces/personal-info/personal-info-model';
-import { MongooseIdAssigner, AssignerPluginOptions } from 'mongoose-id-assigner'
+import { GenderEnumList, StudentDocument } from './../../interfaces/personal-info/personal-info-model';
+
+
 const Schema = mongoose.Schema;
 export const referCodeRegEx = /^[A-Z][A-Z0-9]{5}$/
 
 const referCodeValidator = { $type: 'string', $regex: referCodeRegEx }
-const schema = new Schema({
+const schema = new Schema<StudentDocument>({
     _id: String,
     title: {
         type: String,

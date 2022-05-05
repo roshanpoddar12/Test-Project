@@ -1,7 +1,7 @@
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as mongoose from 'mongoose';
-import { TestRoutes } from "../routes/studentRoutes";
+import { Routes } from "../routes/routes";
 import { CommonRoutes } from "../routes/common_routes";
 
 class App {
@@ -9,14 +9,14 @@ class App {
    public app: express.Application;
    public mongoUrl: string = 'mongodb://localhost/db_test_project_local';
 
-   private test_routes: TestRoutes = new TestRoutes();
+   private routes: Routes = new Routes();
    private common_routes: CommonRoutes = new CommonRoutes();
 
    constructor() {
       this.app = express();
       this.config();
       this.mongoSetup();
-      this.test_routes.route(this.app);
+      this.routes.route(this.app);
       this.common_routes.route(this.app);
    }
 

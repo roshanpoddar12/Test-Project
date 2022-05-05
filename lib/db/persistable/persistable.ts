@@ -491,9 +491,7 @@ export class Persistable<
     }
   let { objs, uniqueFieldSet, checkFieldsPresence } = upsertSpec;
   // console.log(upsertSpec)
-    let uniqueFieldSets = uniqueFieldSet
-      ? [uniqueFieldSet]
-      : this.indexSpec && this.indexSpec.unique;
+    let uniqueFieldSets
     if (!objs || toNonEmptyArr(objs).length == 0) {
       throw new Error(
         `no objs in upsertSpec ${txt(upsertSpec)} to upsert on '${
@@ -519,7 +517,6 @@ export class Persistable<
       })
       uniqueFieldSets = [indexes]
     }
-    console.log(nullIndexes)
     for (
       var mainIndex = 0;
       mainIndex < upsertObjs.length;

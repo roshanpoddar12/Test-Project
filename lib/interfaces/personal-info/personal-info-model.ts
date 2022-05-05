@@ -3,6 +3,7 @@ import { strEnum } from "./../../common/type"
 import { PersistableObject } from "./../../db/persistable/db"
 import { ContactInfoModel } from "./contact" 
 import { NameModel } from "./name"
+import * as mongoose from 'mongoose';
 
 export const GenderEnum = strEnum(["m", "f", "o"])
 export const GenderEnumList = ["m", "f", "o"]
@@ -45,6 +46,9 @@ export interface StudentInfoModel extends PersonalInfoModel {
     leaderboard?: LeaderboardData
     weeklyLeaderboardMilestone?: number
 }
+export interface StudentInfoPerssistable extends StudentInfoModel, PersistableObject { }
+
+export type StudentDocument = mongoose.Document & StudentInfoPerssistable
 export interface LeaderboardData {
     highestPoints?: number
     bestRank?: number

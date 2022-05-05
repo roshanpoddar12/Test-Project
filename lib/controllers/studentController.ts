@@ -5,26 +5,24 @@ import e = require('express');
 import { Persistable } from 'db/persistable/persistable';
 import * as student from '../schema/student/schema';
 
-export class StudentController {
 
-    private studentService: UserService = new UserService();
+    let studentService: UserService = new UserService();
 
-    public async createStudent(req: Request, res: Response) {
-        // this check whether all the filds were send through the erquest or not
-        try{
-            const userObj = await this.studentService.createStudent(req.body);
-            res.send(userObj)
+    // public async createStudent(req: Request, res: Response) {
+    //     // this check whether all the filds were send through the erquest or not
+    //     try{
+    //         const userObj = await this.studentService.createStudent(req.body);
+    //         res.send(userObj)
 
-        }catch(e){
-            res.send(e)
+    //     }catch(e){
+    //         res.send(e)
 
-        }
+    //     }
         
-    }
-
-    public async  getStudent(req: Request, res: Response) {
-            const user_filter = req.body;
-           const userObj = await this.studentService.filterStudent(user_filter);
+    // }
+    export const getStudent = async(req: Request, res: Response) => {
+            const userFilter = req.body;
+           const userObj = await studentService.filterStudent(userFilter);
 
            res.send(userObj)
     }
@@ -36,4 +34,4 @@ export class StudentController {
     // }
 
    
-}
+// }
